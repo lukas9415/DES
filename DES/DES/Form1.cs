@@ -18,6 +18,12 @@ namespace DES
         {
             InitializeComponent();
         }
+        
+        public enum Mode
+        {
+            ENCRYPT,
+            DECRYPT
+        }
 
         private void encryptToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -44,43 +50,48 @@ namespace DES
 
         }
 
-        public static string Encrypt(string text, string key)
-        {
-            // Encode message and password
-            byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
-            byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
 
-            // Set encryption settings -- Use password for both key and init. vector
-            DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
-            ICryptoTransform transform = provider.CreateEncryptor(passwordBytes, passwordBytes);
-            CryptoStreamMode mode = CryptoStreamMode.Write;
-
-            // Set up streams and encrypt
-            MemoryStream memStream = new MemoryStream();
-            CryptoStream cryptoStream = new CryptoStream(memStream, transform, mode);
-            cryptoStream.Write(messageBytes, 0, messageBytes.Length);
-            cryptoStream.FlushFinalBlock();
-
-            // Read the encrypted message from the memory stream
-            byte[] encryptedMessageBytes = new byte[memStream.Length];
-            memStream.Position = 0;
-            memStream.Read(encryptedMessageBytes, 0, encryptedMessageBytes.Length);
-
-            // Encode the encrypted message as base64 string
-            string encryptedMessage = Convert.ToBase64String(encryptedMessageBytes);
-
-            return encryptedMessage;
-        }
 
         private void button2_Click(object sender, EventArgs e)
         {
             string text = textBox1.Text;
-            string encryptedString;
+            var random = new Random();
+            byte[] IV = new byte[8];
+            random.NextBytes(IV);
+            byte[] key = new byte[8];
+            byte[] encrypted = DESCrypto(Mode.ENCRYPT, IV, key, Encoding.UTF8.GetBytes(text));
 
-            string key = textBox2.Text;
+            resultTextBox.Text = BitConverter.ToString(encrypted).Replace("-", "");
+        }
 
-            encryptedString = Encrypt(text, key);
-            resultTextBox.Text = encryptedString;
+        static byte[] DESCrypto(Mode mode, byte[] IV, byte[] key, byte[] text)
+        {
+            using(var DES = new DESCryptoServiceProvider())
+            {
+                DES.IV = IV;
+                DES.Key = key;
+                DES.Mode = CipherMode.CBC;
+                DES.Padding = PaddingMode.PKCS7;
+
+                using(var memStream = new MemoryStream())
+                {
+                    CryptoStream cryptoStream = null;
+
+                    if (mode == Mode.ENCRYPT)
+                        cryptoStream = new CryptoStream(memStream, DES.CreateEncryptor(), CryptoStreamMode.Write);
+                    else if (mode == Mode.DECRYPT)
+                        cryptoStream = new CryptoStream(memStream, DES.CreateDecryptor(), CryptoStreamMode.Write);
+
+                    if (cryptoStream == null)
+                        return null;
+
+                    cryptoStream.Write(text, 0, text.Length);
+                    cryptoStream.FlushFinalBlock();
+                    return memStream.ToArray();
+                }
+            }
+            return null;
+
         }
 
     }
