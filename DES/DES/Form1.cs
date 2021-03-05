@@ -22,8 +22,11 @@ namespace DES
 
         private void encryptToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            textBox3.Enabled = false;
             label1.Visible = true;
             button2.Visible = true;
+            button5.Visible = true;
+            button4.Visible = true;
 
             button3.Visible = false;
             button1.Visible = false;
@@ -32,8 +35,12 @@ namespace DES
 
         private void decryptToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            textBox1.Text = resultTextBox.Text;
+            textBox3.Enabled = true;
             label1.Visible = false;
             button2.Visible = false;
+            button5.Visible = false;
+            button4.Visible = false;
 
             button3.Visible = true;
             button1.Visible = true;
@@ -42,6 +49,7 @@ namespace DES
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            textBox3.Enabled = false;
             var random = new Random();
             byte[] IV = new byte[8];
             random.NextBytes(IV);
@@ -169,6 +177,28 @@ namespace DES
             Encoding encoding = Encoding.GetEncoding("437");
             textBox3.Text = encoding.GetString(IV);
             IV = encoding.GetBytes(textBox3.Text);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            File.WriteAllText("C:\\DESEncrypt\\Encryption.txt", resultTextBox.Text + Environment.NewLine + textBox3.Text);
+            MessageBox.Show("Saved to C:\\DESEncrypt\\Encryption.txt", "Saved Log File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fdlg = new OpenFileDialog();
+            fdlg.Title = "File selection";
+            fdlg.InitialDirectory = @"C:\DESEncrypt";
+            fdlg.Filter = "All files (*.*)|*.*|All files (*.*)|*.*";
+            fdlg.FilterIndex = 2;
+            fdlg.RestoreDirectory = true;
+            if (fdlg.ShowDialog() == DialogResult.OK)
+            {
+                string[] lines = System.IO.File.ReadAllLines(fdlg.FileName);
+                textBox1.Text = lines[0];
+                textBox3.Text = lines[1];
+            }
         }
     }
 }
