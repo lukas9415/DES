@@ -50,16 +50,16 @@ namespace DES
             IV = encoding.GetBytes(textBox3.Text);
         }
 
-        public static string Encrypt(string text, string key)
+        public static string Encrypt(string text, string key, byte[] IV)
         {
             if (key.Length == 8)
             { //test
                 // Encode message and password
                 byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
                 byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
-                var random = new Random();
+/*                var random = new Random();
                 byte[] IV = new byte[8];
-                random.NextBytes(IV);
+                random.NextBytes(IV);*/
 
                 // Set encryption settings -- Use password for both key and init. vector
                 DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
@@ -85,16 +85,16 @@ namespace DES
             else throw new Exception("Key must be 8 symbols lenght ! (8 Bits)");
         }
 
-        public static string Decrypt(string encryptedMessage, string key)
+        public static string Decrypt(string encryptedMessage, string key, byte[] IV)
         {
             if (key.Length == 8)
             {
                 // Convert encrypted message and password to bytes
                 byte[] encryptedMessageBytes = Convert.FromBase64String(encryptedMessage);
                 byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
-                var random = new Random();
+/*                var random = new Random();
                 byte[] IV = new byte[8];
-                random.NextBytes(IV);
+                random.NextBytes(IV);*/
 
 
             // Set encryption settings -- Use password for both key and init. vector
@@ -124,10 +124,12 @@ namespace DES
         {
             string text = textBox1.Text;
             string key = textBox2.Text;
+            Encoding encoding = Encoding.GetEncoding("437");
+            byte[] IV = encoding.GetBytes(textBox3.Text);
 
             try
             {
-                string encryptedString = Encrypt(text, key);
+                string encryptedString = Encrypt(text, key, IV);
                 resultTextBox.Text = encryptedString;
             }
             catch (Exception exc)
@@ -146,16 +148,27 @@ namespace DES
             resultTextBox.Clear();
             string text = textBox1.Text;
             string key = textBox2.Text;
-
+            Encoding encoding = Encoding.GetEncoding("437");
+            byte[] IV = encoding.GetBytes(textBox3.Text);
             try
             {
-                string decryptedString = Decrypt(text, key);
+                string decryptedString = Decrypt(text, key, IV);
                 resultTextBox.Text = decryptedString;
             }
             catch (Exception exc)
             {
                 MessageBox.Show("Error: " + exc.Message);
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            var random = new Random();
+            byte[] IV = new byte[8];
+            random.NextBytes(IV);
+            Encoding encoding = Encoding.GetEncoding("437");
+            textBox3.Text = encoding.GetString(IV);
+            IV = encoding.GetBytes(textBox3.Text);
         }
     }
 }
