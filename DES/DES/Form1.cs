@@ -47,7 +47,7 @@ namespace DES
         public static string Encrypt(string text, string key)
         {
             if (key.Length == 8)
-            {
+            { //test
                 // Encode message and password
                 byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
                 byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
