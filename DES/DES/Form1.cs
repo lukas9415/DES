@@ -46,42 +46,104 @@ namespace DES
 
         public static string Encrypt(string text, string key)
         {
-            // Encode message and password
-            byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
+            if (key.Length == 8)
+            {
+                // Encode message and password
+                byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
+                byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
+
+                // Set encryption settings -- Use password for both key and init. vector
+                DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
+                ICryptoTransform transform = provider.CreateEncryptor(passwordBytes, passwordBytes);
+                CryptoStreamMode mode = CryptoStreamMode.Write;
+
+                // Set up streams and encrypt
+                MemoryStream memStream = new MemoryStream();
+                CryptoStream cryptoStream = new CryptoStream(memStream, transform, mode);
+                cryptoStream.Write(messageBytes, 0, messageBytes.Length);
+                cryptoStream.FlushFinalBlock();
+
+                // Read the encrypted message from the memory stream
+                byte[] encryptedMessageBytes = new byte[memStream.Length];
+                memStream.Position = 0;
+                memStream.Read(encryptedMessageBytes, 0, encryptedMessageBytes.Length);
+
+                // Encode the encrypted message as base64 string
+                string encryptedMessage = Convert.ToBase64String(encryptedMessageBytes);
+
+                return encryptedMessage;
+            }
+            else throw new Exception("Key must be 8 symbols lenght ! (8 Bits)");
+        }
+
+        public static string Decrypt(string encryptedMessage, string key)
+        {
+            if (key.Length == 8)
+            {
+                // Convert encrypted message and password to bytes
+                byte[] encryptedMessageBytes = Convert.FromBase64String(encryptedMessage);
             byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
 
             // Set encryption settings -- Use password for both key and init. vector
             DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
-            ICryptoTransform transform = provider.CreateEncryptor(passwordBytes, passwordBytes);
+            ICryptoTransform transform = provider.CreateDecryptor(passwordBytes, passwordBytes);
             CryptoStreamMode mode = CryptoStreamMode.Write;
 
-            // Set up streams and encrypt
+            // Set up streams and decrypt
             MemoryStream memStream = new MemoryStream();
             CryptoStream cryptoStream = new CryptoStream(memStream, transform, mode);
-            cryptoStream.Write(messageBytes, 0, messageBytes.Length);
+            cryptoStream.Write(encryptedMessageBytes, 0, encryptedMessageBytes.Length);
             cryptoStream.FlushFinalBlock();
 
-            // Read the encrypted message from the memory stream
-            byte[] encryptedMessageBytes = new byte[memStream.Length];
+            // Read decrypted message from memory stream
+            byte[] decryptedMessageBytes = new byte[memStream.Length];
             memStream.Position = 0;
-            memStream.Read(encryptedMessageBytes, 0, encryptedMessageBytes.Length);
+            memStream.Read(decryptedMessageBytes, 0, decryptedMessageBytes.Length);
 
-            // Encode the encrypted message as base64 string
-            string encryptedMessage = Convert.ToBase64String(encryptedMessageBytes);
+            // Encode deencrypted binary data to base64 string
+            string decryptedMessage = ASCIIEncoding.ASCII.GetString(decryptedMessageBytes);
 
-            return encryptedMessage;
+                return decryptedMessage;
         }
+            else throw new Exception("Key must be 8 symbols lenght ! (8 Bits)");
+    }
 
         private void button2_Click(object sender, EventArgs e)
         {
             string text = textBox1.Text;
-            string encryptedString;
-
             string key = textBox2.Text;
 
-            encryptedString = Encrypt(text, key);
-            resultTextBox.Text = encryptedString;
+            try
+            {
+                string encryptedString = Encrypt(text, key);
+                resultTextBox.Text = encryptedString;
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error: " + exc.Message);
+            }
         }
 
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            resultTextBox.Clear();
+            string text = textBox1.Text;
+            string key = textBox2.Text;
+
+            try
+            {
+                string decryptedString = Decrypt(text, key);
+                resultTextBox.Text = decryptedString;
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error: " + exc.Message);
+            }
+        }
     }
 }
