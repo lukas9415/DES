@@ -42,6 +42,7 @@ namespace DES
         private void Form1_Load(object sender, EventArgs e)
         {
 
+
         }
 
         public static string Encrypt(string text, string key)
@@ -51,10 +52,13 @@ namespace DES
                 // Encode message and password
                 byte[] messageBytes = ASCIIEncoding.ASCII.GetBytes(text);
                 byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
+                var random = new Random();
+                byte[] IV = new byte[8];
+                random.NextBytes(IV);
 
                 // Set encryption settings -- Use password for both key and init. vector
                 DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
-                ICryptoTransform transform = provider.CreateEncryptor(passwordBytes, passwordBytes);
+                ICryptoTransform transform = provider.CreateEncryptor(passwordBytes, IV);
                 CryptoStreamMode mode = CryptoStreamMode.Write;
 
                 // Set up streams and encrypt
@@ -82,11 +86,15 @@ namespace DES
             {
                 // Convert encrypted message and password to bytes
                 byte[] encryptedMessageBytes = Convert.FromBase64String(encryptedMessage);
-            byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
+                byte[] passwordBytes = ASCIIEncoding.ASCII.GetBytes(key);
+                var random = new Random();
+                byte[] IV = new byte[8];
+                random.NextBytes(IV);
+
 
             // Set encryption settings -- Use password for both key and init. vector
             DESCryptoServiceProvider provider = new DESCryptoServiceProvider();
-            ICryptoTransform transform = provider.CreateDecryptor(passwordBytes, passwordBytes);
+            ICryptoTransform transform = provider.CreateDecryptor(passwordBytes, IV);
             CryptoStreamMode mode = CryptoStreamMode.Write;
 
             // Set up streams and decrypt
@@ -102,7 +110,6 @@ namespace DES
 
             // Encode deencrypted binary data to base64 string
             string decryptedMessage = ASCIIEncoding.ASCII.GetString(decryptedMessageBytes);
-
                 return decryptedMessage;
         }
             else throw new Exception("Key must be 8 symbols lenght ! (8 Bits)");
