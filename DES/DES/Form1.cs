@@ -17,6 +17,7 @@ namespace DES
         public Form1()
         {
             InitializeComponent();
+
         }
 
         private void encryptToolStripMenuItem_Click(object sender, EventArgs e)
@@ -41,8 +42,12 @@ namespace DES
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
-
+            var random = new Random();
+            byte[] IV = new byte[8];
+            random.NextBytes(IV);
+            Encoding encoding = Encoding.GetEncoding("437");
+            textBox3.Text = encoding.GetString(IV);
+            IV = encoding.GetBytes(textBox3.Text);
         }
 
         public static string Encrypt(string text, string key)
